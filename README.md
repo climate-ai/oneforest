@@ -1,4 +1,4 @@
-# Foobar
+# OneForest
 
 OneForest is a Python library that creates a global species dataset for species prediction. It also provides a species classifier allowing to predict individual tree species based on drone images of forests.
 
