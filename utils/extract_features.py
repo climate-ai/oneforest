@@ -412,7 +412,7 @@ def create_ortho_data(directory, save_dir):
 
 def predict_musacea(annotations, site_name, cnn_model):
     is_musacea = []
-    path_dir = 'images/{}'.format(site_name)
+    path_dir = 'Ecuador/images/{}'.format(site_name)
     for index, row in annotations.iterrows():
         path = os.path.join(path_dir, row.img_path)
         image = skimage.io.imread(path)
@@ -428,8 +428,8 @@ def predict_musacea(annotations, site_name, cnn_model):
 
 
 if __name__ == '__main__':
-    directory = "wwf_ecuador/RGB Orthomosaics"
-    save_dir = 'images'
+    directory = "Ecuador/wwf_ecuador/RGB Orthomosaics"
+    save_dir = 'Ecuador/images'
 
     ortho_data = create_ortho_data(directory, save_dir)
 

@@ -339,6 +339,7 @@ def get_map(list_sites, method, ot = 'sinkhorn', lambd = 0.01, mu = 1):
 
 def get_matching(list_sites, G_big, greedy, drone_to_ground = False):
     final = pd.DataFrame()
+    
     for i in range(len(list_sites)):
         site = list_sites[i]
 
