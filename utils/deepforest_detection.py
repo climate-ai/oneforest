@@ -21,32 +21,32 @@ import pyproj
     
 # Draw Bounding boxes with DeepForest on detected tree on the 4000x4000 tiles
 
-def test_predict_boxes(image_path, test_model):
+def test_predict_boxes(image_path, test_model, score_threshold):
     # Predict test image and return boxes
     boxes = test_model.predict_image(image_path=get_data(image_path),
                                      show=False,
                                      return_plot=False,
-                                     score_threshold=0.1)
+                                     score_threshold=score_threshold)
 
     # Returns a 6 column numpy array, xmin, ymin, xmax, ymax, score, label
     assert boxes.shape[1] == 6
     boxes = boxes.drop(boxes[boxes.score < 0.1].index)
-    return(boxes)
-    
+    return (boxes)
 
 
-def get_annotations(image_path, test_model):
+def get_annotations(image_path, test_model, score_threshold=0.1):
     column_names = ['img_path', 'xmin', 'ymin', 'xmax', 'ymax', 'score']
-    tile_annotations = pd.DataFrame(columns = column_names)
-    
-    base=os.path.basename(image_path)
+    tile_annotations = pd.DataFrame(columns=column_names)
 
-    annotations = test_predict_boxes(image_path, test_model)
-    if len(annotations)>0:
+    base = os.path.basename(image_path)
+
+    annotations = test_predict_boxes(image_path, test_model, score_threshold)
+    if len(annotations) > 0:
         for index, row in annotations.iterrows():
-            new_row = {'img_path': base, 'xmin': row.xmin, 'ymin': row.ymin, 'xmax': row.xmax, 'ymax': row.ymax, 'score': row.score}
-            tile_annotations = tile_annotations.append(new_row, ignore_index = True)
-    return(tile_annotations)
+            new_row = {'img_path': base, 'xmin': row.xmin, 'ymin': row.ymin, 'xmax': row.xmax, 'ymax': row.ymax,
+                       'score': row.score}
+            tile_annotations = tile_annotations.append(new_row, ignore_index=True)
+    return (tile_annotations)
 
 # Process Data 
 

@@ -1,46 +1,47 @@
 import os
-
-import pandas as pd
-import numpy as np
-import lxml.etree as etree
-
-import exifread
-from shapely.geometry import Polygon
 import PIL
-PIL.Image.MAX_IMAGE_PIXELS = None
-from PIL import Image
+import exifread
+import lxml.etree as etree
+import numpy as np
+import pandas as pd
 import slidingwindow
-
 import skimage.color
 import skimage.io
-
 import cv2
 
+from PIL import Image
+PIL.Image.MAX_IMAGE_PIXELS = None
 
 
 # Read .kml files for Orthomosaics RGB
 
 def read_kml(dir, file):
-    kml_file = os.path.join(dir,file)
+    """
+    Extract the position of the image in file
+    Returns:
+        list of the name of the file and the coordinates bounds
+    """
+    kml_file = os.path.join(dir, file)
     x = etree.parse(kml_file)
-    name = file.replace('.kml','')
-    for el in x.iter(tag = "{*}south"):
+    name = file.replace('.kml', '')
+    for el in x.iter(tag="{*}south"):
         lat_min = float(el.text)
-    for el in x.iter(tag = "{*}north"):
+    for el in x.iter(tag="{*}north"):
         lat_max = float(el.text)
-    for el in x.iter(tag = "{*}west"):
+    for el in x.iter(tag="{*}west"):
         lon_min = float(el.text)
-    for el in x.iter(tag = "{*}east"):
+    for el in x.iter(tag="{*}east"):
         lon_max = float(el.text)
 
-    return([name, lat_min, lat_max, lon_min, lon_max])
+    return ([name, lat_min, lat_max, lon_min, lon_max])
+
 
 def read_orthomosaics(dir):
     data = []
     for file in os.listdir(dir):
         if file.endswith('.kml'):
             data.append(read_kml(dir, file))
-    return(pd.DataFrame(data = data, columns=['name', 'lat_min', 'lat_max', 'lon_min', 'lon_max']))
+    return (pd.DataFrame(data=data, columns=['name', 'lat_min', 'lat_max', 'lon_min', 'lon_max']))
 
 
 # Split Orthomosaics in 4000x4000 tiles
@@ -74,7 +75,6 @@ def compute_windows(numpy_image, patch_size, patch_overlap):
     return (windows)
 
 
-
 def save_crop(base_dir, image_name, index, tile_position, crop):
     """Save window crop as image file to be read by PIL.
 
@@ -92,6 +92,7 @@ def save_crop(base_dir, image_name, index, tile_position, crop):
 
     return filename
 
+
 def save_crop_annotations(base_dir, image_name, index, crop):
     """Save window crop as image file to be read by PIL.
 
@@ -107,6 +108,7 @@ def save_crop_annotations(base_dir, image_name, index, crop):
     im.save(filename)
 
     return filename
+
 
 def select_annotations(annotations, windows, index, allow_empty=False):
     """Select annotations that overlap with selected image crop.
@@ -164,10 +166,10 @@ def select_annotations(annotations, windows, index, allow_empty=False):
     else:
         # update coordinates with respect to origin
         selected_annotations.xmax = (selected_annotations.xmin - window_xmin) + (
-            selected_annotations.xmax - selected_annotations.xmin)
+                selected_annotations.xmax - selected_annotations.xmin)
         selected_annotations.xmin = (selected_annotations.xmin - window_xmin)
         selected_annotations.ymax = (selected_annotations.ymin - window_ymin) + (
-            selected_annotations.ymax - selected_annotations.ymin)
+                selected_annotations.ymax - selected_annotations.ymin)
         selected_annotations.ymin = (selected_annotations.ymin - window_ymin)
 
         # cut off any annotations over the border.
@@ -177,7 +179,6 @@ def select_annotations(annotations, windows, index, allow_empty=False):
         selected_annotations.loc[selected_annotations.ymax > h, "ymax"] = h
 
     return selected_annotations
-
 
 
 def split_raster(path_to_raster,
@@ -200,7 +201,6 @@ def split_raster(path_to_raster,
     numpy_image = np.array(raster)
     numpy_image = numpy_image[:, :, :3]
 
-
     # Check that its 3 band
     bands = numpy_image.shape[2]
     if not bands == 3:
@@ -208,7 +208,7 @@ def split_raster(path_to_raster,
                       "rasters in the order (height, width, channels). "
                       "If the image was cropped and saved as a .jpg, "
                       "please ensure that no alpha channel was used.".format(
-                          path_to_raster, bands))
+            path_to_raster, bands))
 
     # Check that patch size is greater than image size
     height = numpy_image.shape[0]
@@ -224,20 +224,20 @@ def split_raster(path_to_raster,
     image_name = os.path.basename(path_to_raster)
 
     for index, window in enumerate(windows):
-
-        #Crop image
+        # Crop image
         tile_pos = tile_xy(windows[index].indices())
         crop = numpy_image[windows[index].indices()]
         image_path = save_crop(base_dir, image_name, index, tile_pos, crop)
 
     return
 
+
 def split_raster_annotations(path_to_raster,
-                 annotations_file,
-                 base_dir=".",
-                 patch_size=400,
-                 patch_overlap=0.05,
-                 allow_empty=False):
+                             annotations_file,
+                             base_dir=".",
+                             patch_size=400,
+                             patch_overlap=0.05,
+                             allow_empty=False):
     """Divide a large tile into smaller arrays. Each crop will be saved to
     file.
 
@@ -267,7 +267,7 @@ def split_raster_annotations(path_to_raster,
                       "rasters in the order (height, width, channels). "
                       "If the image was cropped and saved as a .jpg, "
                       "please ensure that no alpha channel was used.".format(
-                          path_to_raster, bands))
+            path_to_raster, bands))
 
     # Check that patch size is greater than image size
     height = numpy_image.shape[0]
@@ -299,12 +299,12 @@ def split_raster_annotations(path_to_raster,
     if not annotations.shape[1] == 6:
         raise ValueError("Annotations file has {} columns, should have "
                          "format image_path, xmin, ymin, xmax, ymax, label".format(
-                             annotations.shape[1]))
+            annotations.shape[1]))
 
     annotations_files = []
     for index, window in enumerate(windows):
 
-        #Crop image
+        # Crop image
         crop = numpy_image[windows[index].indices()]
 
         # Find annotations, image_name is the basename of the path
@@ -334,6 +334,7 @@ def split_raster_annotations(path_to_raster,
 
     return annotations_files
 
+
 def tile_xy(win):
     """
     Convert the window position to the x,y pixel position of the tile on the image
@@ -344,7 +345,7 @@ def tile_xy(win):
     x_max = win[1].stop
     y_min = win[0].start
     y_max = win[0].stop
-    return(x_min, y_min, x_max, y_max)
+    return (x_min, y_min, x_max, y_max)
 
 
 # Rescale lat and lon
@@ -355,35 +356,38 @@ def get_bounds(df):
     min_lon = df.lon.min()
     max_lon = df.lon.max()
     bounds = [min_lon, min_lat, max_lon, max_lat]
-    return(bounds)
+    return (bounds)
+
 
 def get_scale(bounds_drone, bounds_ground):
     min_lon, min_lat, max_lon, max_lat = bounds_drone[0], bounds_drone[1], bounds_drone[2], bounds_drone[3]
     g_min_lon, g_min_lat, g_max_lon, g_max_lat = bounds_ground[0], bounds_ground[1], bounds_ground[2], bounds_ground[3]
-    r_lat = (max_lat - min_lat)/(g_max_lat - g_min_lat)
-    r_lon = (max_lon - min_lon)/(g_max_lon - g_min_lon)
+    r_lat = (max_lat - min_lat) / (g_max_lat - g_min_lat)
+    r_lon = (max_lon - min_lon) / (g_max_lon - g_min_lon)
     scale = np.array([r_lat, r_lon])
-    return(scale)
+    return (scale)
+
 
 def rescale(X_drone, bounds, scale):
     min_lon, min_lat, max_lon, max_lat = bounds[0], bounds[1], bounds[2], bounds[3]
-    
+
     # Center of points, defined as the center of the minimal rectangle
     # that contains all points.
     center_lat = (min_lat + max_lat) * .5
     center_lon = (min_lon + max_lon) * .5
 
     # Points scaled about center.
-    X_drone[:,0] = (X_drone[:,0] - center_lat)/scale[0] + center_lat
-    X_drone[:,1] = (X_drone[:,1] - center_lon)/scale[1] + center_lon
-    return(X_drone)
+    X_drone[:, 0] = (X_drone[:, 0] - center_lat) / scale[0] + center_lat
+    X_drone[:, 1] = (X_drone[:, 1] - center_lon) / scale[1] + center_lon
+    return (X_drone)
+
 
 # Extract Orthomosaics features
 
 def ratio(size, min, max):
     delta = max - min
-    r = delta/float(size)
-    return(r)
+    r = delta / float(size)
+    return (r)
 
 
 def create_ortho_data(directory, save_dir):
@@ -400,17 +404,29 @@ def create_ortho_data(directory, save_dir):
             tags = exifread.process_file(f)
             width = int(str(tags['Image ImageWidth']))
             height = int(str(tags['Image ImageLength']))
-            name = file.replace('.tif','')
+            name = file.replace('.tif', '')
             ortho_dim.append([name, width, height])
-    ortho_dim = pd.DataFrame(data = ortho_dim, columns=['name', 'width', 'height']) 
-    
-    ortho_data = pd.merge(ortho_features, ortho_dim, on = 'name')  
+    ortho_dim = pd.DataFrame(data=ortho_dim, columns=['name', 'width', 'height'])
+
+    ortho_data = pd.merge(ortho_features, ortho_dim, on='name')
     ortho_data['ratio_x'] = ortho_data.apply(lambda x: ratio(x.width, x.lon_min, x.lon_max), axis=1)
     ortho_data['ratio_y'] = ortho_data.apply(lambda x: ratio(x.height, x.lat_min, x.lat_max), axis=1)
-    ortho_data.to_csv(save_dir, index = False)
-    return(ortho_data)
+    ortho_data.to_csv(save_dir, index=False)
+    return (ortho_data)
+
 
 def predict_musacea(annotations, site_name, cnn_model):
+    """
+    Build a new pandas column in the tree dataset with the probability of each tree to belong to the dominant species
+    Musacea (palm tree).
+    Args:
+        annotations: tree dataset (drone data)
+        site_name: name of the selected site in Ecuador
+        cnn_model: trained CNN model to do binary species classification
+
+    Returns:
+        final pandas dataframe for drone data with the additional information on initial tree prediction
+    """
     is_musacea = []
     path_dir = 'Ecuador/images/{}'.format(site_name)
     for index, row in annotations.iterrows():
@@ -418,13 +434,12 @@ def predict_musacea(annotations, site_name, cnn_model):
         image = skimage.io.imread(path)
         tree = image[int(row.ymin):int(row.ymax), int(row.xmin):int(row.xmax)]
         patch = cv2.resize(tree, (200, 200))
-        x = np.expand_dims(patch/255., axis=0)
+        x = np.expand_dims(patch / 255., axis=0)
         pred = cnn_model.predict(x)
         is_musacea.append(np.squeeze(pred))
     is_musacea = np.vstack(is_musacea).reshape(-1)
     annotations['is_musacea'] = is_musacea
-    return(annotations)
-
+    return (annotations)
 
 
 if __name__ == '__main__':
@@ -438,9 +453,9 @@ if __name__ == '__main__':
         if file.endswith('.tif'):
             # Open image file for reading (binary mode)
             path_to_raster = os.path.join(directory, file)
-            name = file.replace('.tif','')
-            
-            tiles_dir = os.path.join(save_dir,name)
+            name = file.replace('.tif', '')
+
+            tiles_dir = os.path.join(save_dir, name)
             if not os.path.exists(tiles_dir):
                 os.makedirs(tiles_dir)
 
