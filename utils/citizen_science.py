@@ -4,7 +4,7 @@ import geopandas as gpd
 import numpy as np
 
 
-def extract_ground_data(ground_dir, annot_dir):
+def extract_ground_data(in_dir, out_dir):
     # Extract citizen science
     # For each tree (reported), we have GPS coordinates, species, size,..
 
@@ -18,7 +18,7 @@ def extract_ground_data(ground_dir, annot_dir):
     # Plot identifier: Plot
     # Index of Tree: _index
 
-    shapefile = gpd.read_file(ground_dir)
+    shapefile = gpd.read_file(in_dir)
     ground_files = pd.DataFrame(shapefile)
     print(ground_files.columns)
 
@@ -26,7 +26,7 @@ def extract_ground_data(ground_dir, annot_dir):
     ground_files.rename(columns={'Variedad_1' : "name",  '_Gps_1_lat' : "lat", '_Gps_1_lon' : "lon",  
                     'Ave_Diamet': "diameter", 'Altura_del':'height', 'Plant_Yr':'year', 'Plot':'plot_id', '_index': 'tree_id'},inplace=True)
     ground_files = ground_files[column_names]
-    ground_files.to_csv('{}/ground_data.csv'.format(annot_dir), index = False)
+    ground_files.to_csv('{}/ground_data.csv'.format(out_dir), index = False)
 
 
 

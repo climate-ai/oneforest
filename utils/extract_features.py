@@ -58,7 +58,7 @@ def compute_windows(numpy_image, patch_size, patch_overlap):
     """Create a sliding window object from a raster tile.
 
     Args:
-        numpy_image (array): Raster object as numpy array to cut into crops
+        numpy_image (numpy array): Raster object as numpy array to cut into crops
 
     Returns:
         windows (list): a sliding windows object
@@ -360,6 +360,15 @@ def get_bounds(df):
 
 
 def get_scale(bounds_drone, bounds_ground):
+    """
+    Computes the scale between drone data and ground data for rescaling
+    Args:
+        bounds_drone (numpy array): bounded coordinates of drone image
+        bounds_ground (numpy array): bounded coordinates of ground site
+
+    Returns:
+        scale (float): ratio between distance in drone and ground data (scale = (drone dist/ground dist) >1)
+    """
     min_lon, min_lat, max_lon, max_lat = bounds_drone[0], bounds_drone[1], bounds_drone[2], bounds_drone[3]
     g_min_lon, g_min_lat, g_max_lon, g_max_lat = bounds_ground[0], bounds_ground[1], bounds_ground[2], bounds_ground[3]
     r_lat = (max_lat - min_lat) / (g_max_lat - g_min_lat)
@@ -369,6 +378,9 @@ def get_scale(bounds_drone, bounds_ground):
 
 
 def rescale(X_drone, bounds, scale):
+    """
+    Rescale the positions of drone data (bounding boxes position)
+    """
     min_lon, min_lat, max_lon, max_lat = bounds[0], bounds[1], bounds[2], bounds[3]
 
     # Center of points, defined as the center of the minimal rectangle
@@ -391,6 +403,10 @@ def ratio(size, min, max):
 
 
 def create_ortho_data(directory, save_dir):
+    """
+    Extract data from drone orthomosaics (dimensions (width, height), positions top-left,
+    scale on x- and y-axis (ratio_x, ratio_y)).
+    """
     ortho_features = read_orthomosaics(directory)
 
     ortho_dim = []
@@ -412,7 +428,7 @@ def create_ortho_data(directory, save_dir):
     ortho_data['ratio_x'] = ortho_data.apply(lambda x: ratio(x.width, x.lon_min, x.lon_max), axis=1)
     ortho_data['ratio_y'] = ortho_data.apply(lambda x: ratio(x.height, x.lat_min, x.lat_max), axis=1)
     ortho_data.to_csv(save_dir, index=False)
-    return (ortho_data)
+    return ortho_data
 
 
 def predict_musacea(annotations, site_name, cnn_model):
@@ -420,8 +436,8 @@ def predict_musacea(annotations, site_name, cnn_model):
     Build a new pandas column in the tree dataset with the probability of each tree to belong to the dominant species
     Musacea (palm tree).
     Args:
-        annotations: tree dataset (drone data)
-        site_name: name of the selected site in Ecuador
+        annotations (dataframe): tree dataset (drone data)
+        site_name (str): name of the selected site in Ecuador
         cnn_model: trained CNN model to do binary species classification
 
     Returns:

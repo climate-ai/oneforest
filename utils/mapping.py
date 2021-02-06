@@ -17,13 +17,13 @@ def find_pair(x_ground_nn, x_drone_nn, annotations_files, ground_files):
     """
     Connect each ground data to its 1-nearest neighbour among the drone data points.
     Args:
-        x_ground_nn: ground data position (latitude, longitude), identified by id = 0
-        x_drone_nn: drone data position (latitude, longitude), identified by id = 1
-        annotations_files (DataFrame): drone data
-        ground_files (DataFrame): ground data
+        x_ground_nn (numpy array): ground data position (latitude, longitude), identified by id = 0
+        x_drone_nn (numpy array): drone data position (latitude, longitude), identified by id = 1
+        annotations_files (dataframe): drone data
+        ground_files (dataframe): ground data
 
     Returns:
-        final: merge ground and drone data following the nearest neighbours mapping
+        final (dataframe): merge ground and drone data following the nearest neighbours mapping
     """
     n = len(x_ground_nn)
     m = len(x_drone_nn)
@@ -53,13 +53,13 @@ def find_pair_2(x_ground_nn, x_drone_nn, annotations_files, ground_files):
     """
     Connect each drone data to its 1-nearest neighbour among the ground data points.
     Args:
-        x_ground_nn: ground data position (latitude, longitude), identified by id = 0
-        x_drone_nn: drone data position (latitude, longitude), identified by id = 1
-        annotations_files (DataFrame): drone data
-        ground_files (DataFrame): ground data
+        x_ground_nn (numpy array): ground data position (latitude, longitude), identified by id = 0
+        x_drone_nn (numpy array): drone data position (latitude, longitude), identified by id = 1
+        annotations_files (dataframe): drone data
+        ground_files (dataframe): ground data
 
     Returns:
-        final: merge ground and drone data following the nearest neighbours mapping
+        final (dataframe): merge ground and drone data following the nearest neighbours mapping
     """
     n = len(x_ground_nn)
     m = len(x_drone_nn)
@@ -89,8 +89,8 @@ def binary_crossentropy(p_d, p_g):
     """
     Computes the binary cross-entropy between two probability distributions
     Args:
-        p_d: probability of a drone tree to be a musacea; computed by the CNN
-        p_g: probability of a ground tree to be a musacea; evaluated by humans; 0 or 1
+        p_d (list): list of probabilities of a drone tree to be a musacea; computed by the CNN
+        p_g (list): list of probabilities of a ground tree to be a musacea; evaluated by humans; 0 or 1
 
     Returns:
         M: matrix of binary cross-entropies
@@ -115,11 +115,11 @@ def OT_emd(X_d, X_g):
     """
     Computes the optimal transport plan using the Earth Mover's distance (discrete Wasserstein distance)
     Args:
-        X_d: drone positions (lat, lon)
-        X_g: ground positions (lat, lon)
+        X_d (numpy array): drone positions (lat, lon)
+        X_g (numpy array): ground positions (lat, lon)
 
     Returns:
-        g0: optimal transport plan
+        g0 (numpy array): optimal transport plan
     """
     # loss matrix
     C = ot.dist(X_d, X_g)
@@ -152,14 +152,14 @@ def OT_scores_emd(X_d, X_g, p_d, p_g, mu=0.5):
     Computes the optimal transport plan using the Earth Mover's distance (discrete Wasserstein distance) on GPS position
     and initial tree species prediction (p_d, p_g)
     Args:
-        X_d: drone positions (lat, lon)
-        X_g: ground positions (lat, lon)
-        p_d: probability of the tree from drone data
-        p_g: probability of the tree from ground data
-        mu: balancing coefficient between terms of the cost
+        X_d (numpy array): drone positions (lat, lon)
+        X_g (numpy array): ground positions (lat, lon)
+        p_d (list): list of probabilities of the tree from drone data
+        p_g (list): list of probabilities of the tree from ground data
+        mu (float): balancing coefficient between terms of the cost
 
     Returns:
-        g0: optimal transport plan
+        g0 (numpy array): optimal transport plan
     """
     # loss matrix
     # loss matrix
@@ -188,9 +188,9 @@ def OT_sinkhorn(X_d, X_g, lambd=1e-2):
     """
     Computes the optimal transport plan using the Sinkhorn distance on GPS position
     Args:
-        X_d: drone positions (lat, lon)
-        X_g: ground positions (lat, lon)
-        lambd: coefficient for the entropy term
+        X_d (numpy array): drone positions (lat, lon)
+        X_g (numpy array): ground positions (lat, lon)
+        lambd (float): coefficient for the entropy term
 
     Returns:
         gs: optimal transport plan
@@ -216,8 +216,8 @@ def OT_scores_sinkhorn(X_d, X_g, p_d, p_g, mu=0.5, lambd=1e-2):
     Args:
         X_d: drone positions (lat, lon)
         X_g: ground positions (lat, lon)
-        p_d: probability of the tree from drone data
-        p_g: probability of the tree from ground data
+        p_d: list of probabilities of the tree from drone data
+        p_g: list of probabilities of the tree from ground data
         mu: balancing coefficient between terms of the cost
         lambd: coefficient for the entropy term
 
@@ -252,11 +252,11 @@ def gromov_wasserstein(X_d, X_g):
     """
     Computes the optimal transport plan using the Gromov-Wasserstein distance on GPS position
     Args:
-        X_d: drone positions (lat, lon)
-        X_g: ground positions (lat, lon)
+        X_d (numpy array): drone positions (lat, lon)
+        X_g (numpy array): ground positions (lat, lon)
 
     Returns:
-        gw0: optimal transport plan
+        gw0 (numpy array): optimal transport plan
     """
     C1 = sp.spatial.distance.cdist(X_d, X_d)
     C2 = sp.spatial.distance.cdist(X_g, X_g)
@@ -276,11 +276,11 @@ def gromov_wasserstein_entropic(X_d, X_g):
     """
     Computes the optimal transport plan using the Gromov-Wasserstein distance on GPS position with an entropy term
     Args:
-        X_d: drone positions (lat, lon)
-        X_g: ground positions (lat, lon)
+        X_d (numpy array): drone positions (lat, lon)
+        X_g (numpy array): ground positions (lat, lon)
 
     Returns:
-        gw0: optimal transport plan
+        gw0 (numpy array): optimal transport plan
     """
     C1 = sp.spatial.distance.cdist(X_d, X_d)
     C2 = sp.spatial.distance.cdist(X_g, X_g)
@@ -300,12 +300,12 @@ def merge_drone_to_ground(annotations_files, ground_files, G):
     """
     Merge all drone data points to ground data
     Args:
-        annotations_files: drone data
-        ground_files: ground data
-        G: optimal transport plan
+        annotations_files (dataframe): drone data
+        ground_files (dataframe): ground data
+        G (numpy array): optimal transport plan
 
     Returns:
-        final: final dataframe - tree dataset
+        final (dataframe): final dataframe - tree dataset
     """
     idx = np.argmax(G, axis=1)
     annotations_files['ground_index'] = idx
@@ -353,7 +353,7 @@ def merge_greedy(annotations_files, ground_files, G):
     df_left = annotations_files.loc[row_ind]
     df_left['ground_index'] = col_ind
     ground_data = ground_files
-        #[['lat', 'lon', 'X', 'Y', 'name', 'year', 'tree_id', 'plot_id', 'diameter', 'height', 'is_musacea']]
+    # [['lat', 'lon', 'X', 'Y', 'name', 'year', 'tree_id', 'plot_id', 'diameter', 'height', 'is_musacea']]
     ground_data['ground_index'] = ground_data.index
     ground_data['id'] = ground_data.index
     final = pd.merge(df_left, ground_data, on='ground_index', how='inner', suffixes=('_d', '_g'))
@@ -364,17 +364,17 @@ def acc_musacea(final):
     """
     Computes the accuracy of the final tree dataset after mapping ground and drone data
     Args:
-        final: tree dataset obtained after mapping
+        final (dataframe): tree dataset obtained after mapping
 
     Returns:
-        acc: accuracy of the mapping
+        acc (float): accuracy of the mapping
     """
     a = final.is_musacea_d.to_numpy()
     b = final.is_musacea_g.to_numpy()
     L = np.array([bool(elt) for elt in a])
     r = np.array([bool(elt) for elt in b])
     res = (r == L)
-    acc = len(res[res==True]) / len(res)
+    acc = len(res[res == True]) / len(res)
     return acc
 
 
@@ -385,6 +385,14 @@ Three functions to map ground and drone data, and create the final tree datasets
 
 
 def get_matching_baseline_Ecuador(list_sites):
+    """
+    Returns the mapping (tree dataset) following the nearest neighbours strategy
+    Args:
+        list_sites: list of sites in Ecuador
+
+    Returns:
+        final: final tree dataset for all sites combined
+    """
     final = pd.DataFrame()
 
     for site in list_sites:
@@ -407,7 +415,7 @@ def get_matching_baseline_Ecuador(list_sites):
         final = pd.concat([final, final_site])
 
     final = final.reset_index(drop=True)
-    return (final)
+    return final
 
 
 def get_map_Ecuador(list_sites, method, ot_type='sinkhorn', lambd=0.01, mu=1):
@@ -509,6 +517,16 @@ Three functions to map ground and drone data, and create the final tree datasets
 
 
 def get_matching_baseline_NEON(list_sites, df_drone, df_ground):
+    """
+    Returns the mapping following the nearest neighbours strategy.
+    Args:
+        list_sites (list): list of the sites in the datasets
+        df_drone (dataframe): drone data
+        df_ground (dataframe): ground data
+
+    Returns:
+        final (dataframe): final tree dataset for all sites combined
+    """
     final = pd.DataFrame()
 
     for site in list_sites:
@@ -528,7 +546,7 @@ def get_matching_baseline_NEON(list_sites, df_drone, df_ground):
         final = pd.concat([final, final_site])
 
     final = final.reset_index(drop=True)
-    return (final)
+    return final
 
 
 def get_map_NEON(list_sites, df_drone, df_ground, method, ot='sinkhorn', lambd=0.01, mu=1):
@@ -551,12 +569,6 @@ def get_map_NEON(list_sites, df_drone, df_ground, method, ot='sinkhorn', lambd=0
             if ot == 'sinkhorn':
                 G = OT_sinkhorn(X_drone, X_ground, lambd=lambd)
 
-        if method == 'OT + CNN':
-            if ot == 'emd':
-                G = OT_scores_emd(X_drone, X_ground, mus_drone, mus_ground, mu=mu)
-            if ot == 'sinkhorn':
-                G = OT_scores_sinkhorn(X_drone, X_ground, mus_drone, mus_ground, mu=mu, lambd=lambd)
-
         if method == 'GW':
             G = gromov_wasserstein(X_drone, X_ground)
 
@@ -568,6 +580,20 @@ def get_map_NEON(list_sites, df_drone, df_ground, method, ot='sinkhorn', lambd=0
 
 
 def get_matching_NEON(list_sites, df_drone, df_ground, G_big, greedy, drone_to_ground=False):
+    """
+    Deduces from the optimal transport plans in G_big the final tree datasets according to the merging strategy
+    Args:
+        list_sites (list): list of the sites in the datasets
+        df_drone (dataframe): drone data
+        df_ground (dataframe): ground data
+        G_big (numpy array): list of mapping matrices for each site
+        greedy (bool): merging strategy. If True, the merging is greedy.
+        drone_to_ground (bool): if True, connect all drone data points; else, connect all ground data points
+
+    Returns:
+        final (dataframe): final tree dataset for all sites combined
+    """
+
     final = pd.DataFrame()
 
     for i in range(len(list_sites)):
