@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: slidingwindow
+Version: 0.0.14
+Summary: Sliding Window library for image processing in Python
+Home-page: https://github.com/adamrehn/slidingwindow
+Author: Adam Rehn
+Author-email: adam@adamrehn.com
+License: MIT
+Platform: UNKNOWN
+Requires-Dist: numpy
+Requires-Dist: psutil
+
+UNKNOWN
+
+
